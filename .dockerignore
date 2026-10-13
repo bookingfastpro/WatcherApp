@@ -3,7 +3,7 @@ node_modules
 .git
 .github
 coverage
-storage
+/storage
 tests
 *.md
 !README.md
@@ -12,3 +12,4 @@ tests
 !.env.example
 Dockerfile
 docker-compose*.yml
+/pgtest

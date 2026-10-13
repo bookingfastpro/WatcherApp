@@ -44,6 +44,7 @@ RUN groupadd --system --gid 1001 app \
 COPY --from=prod-deps --chown=app:app /app/node_modules ./node_modules
 COPY --from=builder --chown=app:app /app/.next ./.next
 COPY --chown=app:app package.json next.config.mjs ./
+COPY --chown=app:app public ./public
 COPY --chown=app:app prisma ./prisma
 COPY --chown=app:app scripts ./scripts
 
