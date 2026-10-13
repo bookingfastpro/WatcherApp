@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+/*
+ * Watcher — design tokens
+ * Palette inspirée de la haute horlogerie : noir laqué, anthracite, gris perle, blanc cassé.
+ * Les couleurs sémantiques (alerte, validé, attention) restent désaturées.
+ */
+@theme {
+  --color-ink: #0d0d0e;
+  --color-anthracite: #1b1c1e;
+  --color-graphite: #2b2c2f;
+  --color-slate: #54565b;
+  --color-smoke: #85878c;
+  --color-line: #e2e0da;
+  --color-line-strong: #cfccc4;
+  --color-mist: #eeede8;
+  --color-ivory: #f6f5f1;
+  --color-paper: #fcfbf8;
+  --color-brass: #97805a;
+
+  --color-alert: #8c2c23;
+  --color-alert-soft: #f5e9e6;
+  --color-ok: #3c5a45;
+  --color-ok-soft: #e8eee8;
+  --color-warn: #86682c;
+  --color-warn-soft: #f4eee0;
+
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --shadow-card: 0 1px 2px rgb(13 13 14 / 0.04), 0 8px 24px -12px rgb(13 13 14 / 0.08);
+  --shadow-float: 0 24px 60px -24px rgb(13 13 14 / 0.25);
+}
+
+@theme inline {
+  --font-sans: var(--font-hanken), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: var(--font-cormorant), "Iowan Old Style", Georgia, serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    background: var(--color-ivory);
+    color: var(--color-anthracite);
+    font-family: var(--font-sans);
+  }
+  ::selection {
+    background: var(--color-ink);
+    color: var(--color-ivory);
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 2px;
+  }
+  h1, h2, h3 {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+}
+
+@layer components {
+  /* Surtitre : petites capitales espacées, typique de l'univers horloger. */
+  .eyebrow {
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--color-smoke);
+    font-weight: 500;
+  }
+  .hairline {
+    height: 1px;
+    background: var(--color-line);
+  }
+  .serial {
+    font-family: var(--font-mono);
+    letter-spacing: 0.04em;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .fade-in {
+    animation: fade-in 0.5s var(--ease-soft) both;
+  }
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+  }
+}

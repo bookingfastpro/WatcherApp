@@ -1,0 +1,16 @@
+# Base PostgreSQL seule, pour développer avec `npm run dev` sur la machine hôte.
+#   docker compose -f docker-compose.dev.yml up -d
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: watcher
+      POSTGRES_PASSWORD: watcher
+      POSTGRES_DB: watcher
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-dev:/var/lib/postgresql/data
+
+volumes:
+  db-dev:

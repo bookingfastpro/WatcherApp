@@ -1,0 +1,620 @@
+// Watcher — schéma de données
+//
+// Principe directeur : séparation stricte entre
+//   - les données d'IDENTIFICATION de la montre (Watch, WatchImage) — consultables
+//     par les professionnels vérifiés, via une projection explicite (src/server/search.ts) ;
+//   - les données CONFIDENTIELLES (TheftReport, PrivateDocument, User) — jamais exposées
+//     aux professionnels, accessibles uniquement au propriétaire et aux administrateurs.
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────── Enums
+
+enum Role {
+  INDIVIDUAL
+  PROFESSIONAL
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+enum TokenType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+}
+
+enum ProVerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum ProActivity {
+  WATCHMAKER
+  JEWELER
+  DEALER
+  AUCTION_HOUSE
+  PRE_OWNED_MARKET
+  EXPERT
+  INSURER
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING
+  VERIFIED
+  INFO_REQUESTED
+  REJECTED
+  RECOVERED
+}
+
+enum DocumentKind {
+  POLICE_REPORT
+  PURCHASE_INVOICE
+  OWNERSHIP_PROOF
+  BUSINESS_REGISTRATION
+  OTHER
+}
+
+enum ModerationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum MessageKind {
+  MESSAGE
+  INFO_REQUEST
+  STATUS_CHANGE
+  SYSTEM
+}
+
+enum BillingInterval {
+  MONTH
+  YEAR
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  TRIALING
+  PAST_DUE
+  UNPAID
+  CANCELED
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
+  PAUSED
+}
+
+enum SubscriptionSource {
+  STRIPE
+  MANUAL
+}
+
+enum SearchType {
+  SERIAL
+  ADVANCED
+}
+
+enum MatchReportContext {
+  PURCHASE_OFFER
+  TRADE_IN
+  REPAIR
+  APPRAISAL
+  CONSIGNMENT
+  OTHER
+}
+
+enum MatchReportStatus {
+  OPEN
+  IN_REVIEW
+  OWNER_NOTIFIED
+  TRANSMITTED_TO_AUTHORITIES
+  CLOSED
+}
+
+enum AuditCategory {
+  ADMIN
+  SECURITY
+  ACCESS
+  BILLING
+  ACCOUNT
+}
+
+enum DataRequestType {
+  EXPORT
+  DELETION
+}
+
+enum DataRequestStatus {
+  PENDING
+  COMPLETED
+  REJECTED
+}
+
+enum PartnerTier {
+  STANDARD
+  PREMIUM
+}
+
+// ─────────────────────────────────────────────────────────────── Comptes
+
+model User {
+  id                String     @id @default(cuid())
+  email             String     @unique
+  emailVerifiedAt   DateTime?
+  passwordHash      String
+  role              Role       @default(INDIVIDUAL)
+  status            UserStatus @default(ACTIVE)
+  firstName         String?
+  lastName          String?
+  phone             String?
+  failedLoginCount  Int        @default(0)
+  lockedUntil       DateTime?
+  lastLoginAt       DateTime?
+  termsAcceptedAt   DateTime?
+  privacyAcceptedAt DateTime?
+  marketingConsent  Boolean    @default(false)
+  suspendedReason   String?
+  deletedAt         DateTime?
+  isDemo            Boolean    @default(false)
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  sessions            Session[]
+  tokens              AuthToken[]
+  professionalProfile ProfessionalProfile?  @relation("ProfileOwner")
+  reviewedProfiles    ProfessionalProfile[] @relation("ProfileReviewer")
+  theftReports        TheftReport[]         @relation("ReportOwner")
+  verifiedReports     TheftReport[]         @relation("ReportVerifier")
+  uploadedDocuments   PrivateDocument[]
+  messages            ReportMessage[]
+  searches            ProfessionalSearch[]
+  matchReports        PotentialMatchReport[] @relation("MatchReporter")
+  handledMatchReports PotentialMatchReport[] @relation("MatchHandler")
+  bookmarks           Bookmark[]
+  auditLogs           AuditLog[]
+  dataRequests        DataRequest[]          @relation("DataRequester")
+  processedRequests   DataRequest[]          @relation("DataProcessor")
+
+  @@index([role, status])
+  @@index([createdAt])
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  ipHash    String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model AuthToken {
+  id        String    @id @default(cuid())
+  userId    String
+  type      TokenType
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
+  @@map("auth_tokens")
+}
+
+model ProfessionalProfile {
+  id                 String                @id @default(cuid())
+  userId             String                @unique
+  companyName        String
+  legalName          String?
+  registrationNumber String // SIRET / numéro d'immatriculation
+  vatNumber          String?
+  activity           ProActivity
+  activityOther      String?
+  addressLine        String
+  postalCode         String
+  city               String
+  country            String                @default("FR") // ISO 3166-1 alpha-2
+  phone              String
+  website            String?
+  verificationStatus ProVerificationStatus @default(PENDING)
+  reviewNote         String?
+  reviewedAt         DateTime?
+  reviewedById       String?
+  submittedAt        DateTime              @default(now())
+  stripeCustomerId   String?               @unique
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+
+  user          User                   @relation("ProfileOwner", fields: [userId], references: [id], onDelete: Cascade)
+  reviewedBy    User?                  @relation("ProfileReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  documents     PrivateDocument[]
+  subscriptions Subscription[]
+  searches      ProfessionalSearch[]
+  matchReports  PotentialMatchReport[]
+  partner       Partner?
+
+  @@index([verificationStatus])
+  @@map("professional_profiles")
+}
+
+// ─────────────────────────────────────────────────────────────── Montres & déclarations
+
+/// Données d'identification de la montre. Seul ce modèle (via une projection
+/// contrôlée) et les images autorisées sont visibles des professionnels.
+model Watch {
+  id                  String   @id @default(cuid())
+  brand               String
+  brandNormalized     String
+  model               String
+  modelNormalized     String
+  reference           String?
+  referenceNormalized String?
+  serialNumber        String?
+  serialNormalized    String?
+  yearApprox          Int?
+  caseMaterial        String?
+  caseSizeMm          Int?
+  dialColor           String?
+  strap               String?
+  /// Visible des professionnels vérifiés : ne doit contenir aucune donnée personnelle.
+  distinctiveMarks    String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  report TheftReport?
+  images WatchImage[]
+
+  @@index([serialNormalized])
+  @@index([brandNormalized, modelNormalized])
+  @@index([referenceNormalized])
+  @@map("watches")
+}
+
+/// Déclaration de vol : informations CONFIDENTIELLES (propriétaire, circonstances, plainte).
+model TheftReport {
+  id                 String       @id @default(cuid())
+  publicRef          String       @unique
+  ownerId            String
+  watchId            String       @unique
+  status             ReportStatus @default(PENDING)
+  theftDate          DateTime
+  theftCity          String
+  theftCountry       String
+  circumstances      String?
+  privateDescription String?
+  policeReportFiled  Boolean      @default(false)
+  policeReportNumber String?
+  policeService      String?
+  ownerCertifiedAt   DateTime
+  statusReason       String?
+  adminNotes         String?
+  verifiedAt         DateTime?
+  verifiedById       String?
+  recoveredAt        DateTime?
+  isDemo             Boolean      @default(false)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  owner        User                   @relation("ReportOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  verifiedBy   User?                  @relation("ReportVerifier", fields: [verifiedById], references: [id], onDelete: SetNull)
+  watch        Watch                  @relation(fields: [watchId], references: [id], onDelete: Cascade)
+  documents    PrivateDocument[]
+  messages     ReportMessage[]
+  matchReports PotentialMatchReport[]
+  bookmarks    Bookmark[]
+
+  @@index([status, createdAt])
+  @@index([ownerId])
+  @@map("theft_reports")
+}
+
+model WatchImage {
+  id                     String           @id @default(cuid())
+  watchId                String
+  storageKey             String           @unique
+  mimeType               String
+  sizeBytes              Int
+  width                  Int?
+  height                 Int?
+  position               Int              @default(0)
+  visibleToProfessionals Boolean          @default(true)
+  moderationStatus       ModerationStatus @default(PENDING)
+  createdAt              DateTime         @default(now())
+
+  watch Watch @relation(fields: [watchId], references: [id], onDelete: Cascade)
+
+  @@index([watchId, position])
+  @@map("watch_images")
+}
+
+/// Documents privés (plainte, facture, Kbis…). Jamais accessibles aux professionnels.
+model PrivateDocument {
+  id                    String           @id @default(cuid())
+  kind                  DocumentKind
+  storageKey            String           @unique
+  mimeType              String
+  sizeBytes             Int
+  sha256                String
+  originalName          String
+  moderationStatus      ModerationStatus @default(PENDING)
+  moderationNote        String?
+  theftReportId         String?
+  professionalProfileId String?
+  uploadedById          String
+  createdAt             DateTime         @default(now())
+
+  theftReport         TheftReport?         @relation(fields: [theftReportId], references: [id], onDelete: Cascade)
+  professionalProfile ProfessionalProfile? @relation(fields: [professionalProfileId], references: [id], onDelete: Cascade)
+  uploadedBy          User                 @relation(fields: [uploadedById], references: [id], onDelete: Restrict)
+
+  @@index([theftReportId])
+  @@index([professionalProfileId])
+  @@map("private_documents")
+}
+
+/// Fil d'échange propriétaire ↔ équipe de modération (demandes de documents, statuts).
+model ReportMessage {
+  id            String      @id @default(cuid())
+  theftReportId String
+  authorId      String?
+  kind          MessageKind @default(MESSAGE)
+  body          String
+  fromAdmin     Boolean     @default(false)
+  readAt        DateTime?
+  createdAt     DateTime    @default(now())
+
+  theftReport TheftReport @relation(fields: [theftReportId], references: [id], onDelete: Cascade)
+  author      User?       @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([theftReportId, createdAt])
+  @@map("report_messages")
+}
+
+// ─────────────────────────────────────────────────────────────── Partenaires
+
+model Partner {
+  id                    String      @id @default(cuid())
+  slug                  String      @unique
+  name                  String
+  logoKey               String?
+  logoMimeType          String?
+  city                  String
+  country               String
+  specialties           String[]
+  shortDescription      String
+  description           String?
+  website               String?
+  instagram             String?
+  facebook              String?
+  linkedin              String?
+  isPublished           Boolean     @default(false)
+  /// Badge "Partenaire vérifié" : ne peut être accordé que si tous les critères
+  /// obligatoires de verificationCriteria sont remplis (contrôlé côté serveur).
+  verified              Boolean     @default(false)
+  verifiedAt            DateTime?
+  verificationCriteria  Json        @default("{}")
+  verificationNotes     String?
+  /// Visibilité commerciale — indépendante de la vérification.
+  tier                  PartnerTier @default(STANDARD)
+  isSponsored           Boolean     @default(false)
+  sponsoredUntil        DateTime?
+  sortOrder             Int         @default(0)
+  professionalProfileId String?     @unique
+  isDemo                Boolean     @default(false)
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  professionalProfile ProfessionalProfile? @relation(fields: [professionalProfileId], references: [id], onDelete: SetNull)
+
+  @@index([isPublished, country, city])
+  @@map("partners")
+}
+
+// ─────────────────────────────────────────────────────────────── Abonnements
+
+model Plan {
+  id            String          @id @default(cuid())
+  code          String          @unique
+  name          String
+  description   String?
+  interval      BillingInterval
+  stripePriceId String?         @unique
+  /// Prix affiché (en centimes). null = "tarif à définir". Le prix facturé est celui du Price Stripe.
+  priceCents    Int?
+  currency      String          @default("EUR")
+  features      String[]
+  isActive      Boolean         @default(true)
+  sortOrder     Int             @default(0)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  subscriptions Subscription[]
+
+  @@map("plans")
+}
+
+model Subscription {
+  id                    String             @id @default(cuid())
+  professionalProfileId String
+  planId                String?
+  source                SubscriptionSource @default(STRIPE)
+  stripeSubscriptionId  String?            @unique
+  stripePriceId         String?
+  status                SubscriptionStatus
+  currentPeriodStart    DateTime?
+  currentPeriodEnd      DateTime?
+  cancelAtPeriodEnd     Boolean            @default(false)
+  canceledAt            DateTime?
+  note                  String?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  professionalProfile ProfessionalProfile @relation(fields: [professionalProfileId], references: [id], onDelete: Cascade)
+  plan                Plan?               @relation(fields: [planId], references: [id], onDelete: SetNull)
+
+  @@index([professionalProfileId, status])
+  @@map("subscriptions")
+}
+
+/// Idempotence des webhooks Stripe.
+model StripeEvent {
+  id          String   @id
+  type        String
+  processedAt DateTime @default(now())
+
+  @@map("stripe_events")
+}
+
+// ─────────────────────────────────────────────────────────────── Recherche professionnelle
+
+model ProfessionalSearch {
+  id                    String     @id @default(cuid())
+  userId                String
+  professionalProfileId String?
+  type                  SearchType
+  criteria              Json
+  serialNormalized      String?
+  resultCount           Int        @default(0)
+  matchedReportIds      String[]
+  blocked               Boolean    @default(false)
+  blockReason           String?
+  flagged               Boolean    @default(false)
+  ipHash                String?
+  userAgent             String?
+  createdAt             DateTime   @default(now())
+
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  professionalProfile ProfessionalProfile? @relation(fields: [professionalProfileId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([flagged, createdAt])
+  @@index([createdAt])
+  @@map("professional_searches")
+}
+
+model Bookmark {
+  id            String   @id @default(cuid())
+  userId        String
+  theftReportId String
+  note          String?
+  createdAt     DateTime @default(now())
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  theftReport TheftReport @relation(fields: [theftReportId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, theftReportId])
+  @@map("bookmarks")
+}
+
+/// Signalement par un professionnel d'une possession potentielle. Transmis aux
+/// administrateurs uniquement ; les coordonnées du propriétaire ne sont jamais révélées.
+model PotentialMatchReport {
+  id                    String             @id @default(cuid())
+  theftReportId         String
+  reporterId            String
+  professionalProfileId String?
+  context               MatchReportContext
+  message               String
+  observedSerial        String?
+  location              String?
+  status                MatchReportStatus  @default(OPEN)
+  adminNotes            String?
+  handledById           String?
+  handledAt             DateTime?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+
+  theftReport         TheftReport          @relation(fields: [theftReportId], references: [id], onDelete: Cascade)
+  reporter            User                 @relation("MatchReporter", fields: [reporterId], references: [id], onDelete: Restrict)
+  professionalProfile ProfessionalProfile? @relation(fields: [professionalProfileId], references: [id], onDelete: SetNull)
+  handledBy           User?                @relation("MatchHandler", fields: [handledById], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@index([reporterId])
+  @@map("potential_match_reports")
+}
+
+// ─────────────────────────────────────────────────────────────── Traçabilité & système
+
+/// Journal d'audit (actions admin, événements de sécurité, accès sensibles, facturation).
+/// Correspond à l'entité "AdminAuditLog" du cahier des charges, élargie par catégories.
+model AuditLog {
+  id         String        @id @default(cuid())
+  category   AuditCategory
+  action     String
+  actorId    String?
+  actorRole  Role?
+  targetType String?
+  targetId   String?
+  metadata   Json?
+  ipHash     String?
+  userAgent  String?
+  createdAt  DateTime      @default(now())
+
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([category, createdAt])
+  @@index([actorId, createdAt])
+  @@index([targetType, targetId])
+  @@map("audit_logs")
+}
+
+model AppSetting {
+  key         String   @id
+  value       Json
+  updatedById String?
+  updatedAt   DateTime @updatedAt
+
+  @@map("app_settings")
+}
+
+model RateLimitBucket {
+  key         String
+  windowStart DateTime
+  count       Int      @default(0)
+
+  @@id([key, windowStart])
+  @@index([windowStart])
+  @@map("rate_limit_buckets")
+}
+
+model DataRequest {
+  id            String            @id @default(cuid())
+  userId        String
+  type          DataRequestType
+  status        DataRequestStatus @default(PENDING)
+  note          String?
+  processedAt   DateTime?
+  processedById String?
+  createdAt     DateTime          @default(now())
+
+  user        User  @relation("DataRequester", fields: [userId], references: [id], onDelete: Cascade)
+  processedBy User? @relation("DataProcessor", fields: [processedById], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@map("data_requests")
+}

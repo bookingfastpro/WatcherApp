@@ -1,0 +1,17 @@
+node_modules
+.next
+out
+coverage
+*.tsbuildinfo
+next-env.d.ts
+
+# Environnement — ne jamais committer de vraies clés
+.env
+.env.local
+.env.*.local
+
+# Stockage local des fichiers (driver "local")
+storage/
+
+.DS_Store
+npm-debug.log*
