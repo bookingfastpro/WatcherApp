@@ -10,6 +10,8 @@ case "$DATABASE_URL" in
   *) echo "[entrypoint] ERREUR : DATABASE_URL doit commencer par postgresql:// (elle commence par : \"${DATABASE_URL%%:*}\"). Collez uniquement l URL dans le champ Value, sans le nom de la variable ni guillemets."; exit 1 ;;
 esac
 
+node scripts/check-env.mjs
+
 echo "[entrypoint] Application des migrations Prisma…"
 ./node_modules/.bin/prisma migrate deploy
 
