@@ -130,7 +130,7 @@ Toutes sont documentées dans [`.env.example`](.env.example). Où trouver les vr
 | --- | --- | --- |
 | `APP_URL` | oui | URL publique, ex. `https://watcher.example.fr` |
 | `APP_SECRET` | oui | `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"` |
-| `DATABASE_URL` | oui | Fournie par Coolify (ressource PostgreSQL) ou votre hébergeur |
+| `DATABASE_URL` | oui | Coolify (ressource PostgreSQL) ou **Supabase** (Session pooler + `?schema=watcher`, voir docs/DEPLOIEMENT-COOLIFY.md) |
 | `STORAGE_DRIVER` | non | `local` (volume persistant) ou `s3` |
 | `S3_*` | si `s3` | Console de votre fournisseur S3 (Scaleway, OVH, AWS, R2, MinIO…) — bucket **privé** |
 | `SMTP_*`, `EMAIL_FROM` | recommandé | Votre fournisseur d'email transactionnel (Brevo, Postmark, Mailjet, SES…) |

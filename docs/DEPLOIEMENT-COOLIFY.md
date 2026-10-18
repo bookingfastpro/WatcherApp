@@ -1,6 +1,6 @@
 # Déploiement sur Coolify
 
-Deux méthodes. La **méthode A** (application Dockerfile + base PostgreSQL gérée par Coolify) est recommandée : sauvegardes de la base intégrées, redéploiement de l'application indépendant.
+Deux méthodes, et une variante base de données **Supabase** (section dédiée plus bas). La **méthode A** (application Dockerfile + base PostgreSQL gérée par Coolify) est recommandée : sauvegardes de la base intégrées, redéploiement de l'application indépendant.
 
 ## Prérequis
 
@@ -108,6 +108,28 @@ node -e "fetch('http://127.0.0.1:3000/api/cron/maintenance',{method:'POST',heade
 ### 7. Stripe
 
 Webhook : `https://watcher.votre-domaine.fr/api/stripe/webhook` (événements listés dans le README). Configurez ensuite les offres dans `/admin/abonnements`.
+
+## Base de données sur Supabase (au lieu de PostgreSQL Coolify)
+
+Supabase fournit un PostgreSQL managé. Watcher s'y connecte **directement par Prisma, côté serveur** : les paquets `@supabase/supabase-js` / `@supabase/ssr`, l'URL du projet et la clé *publishable* ne sont **pas** nécessaires (l'application a sa propre authentification, et cette clé est publique).
+
+1. Supabase › votre projet › bouton **Connect** › onglet **Session pooler** (port `5432`, compatible IPv4 — la connexion « Direct » est en IPv6 uniquement). Copiez l'URL et remplacez `[YOUR-PASSWORD]` par le mot de passe de la base (Project Settings › Database ; s'il contient `@ / : # ?`, encodez-les : `@` → `%40`…).
+2. Ajoutez `?schema=watcher` à la fin :
+
+```
+DATABASE_URL=postgresql://postgres.VOTRE-REF:MOT-DE-PASSE@aws-0-REGION.pooler.supabase.com:5432/postgres?schema=watcher
+```
+
+3. Dans Coolify, renseignez seulement cette `DATABASE_URL` (ne créez pas de ressource PostgreSQL). Les migrations s'appliquent au démarrage du conteneur.
+
+N'utilisez pas le *Transaction pooler* (port `6543`) : il est incompatible avec les migrations Prisma.
+
+**Sécurité.** Supabase expose automatiquement les tables du schéma `public` via son API REST, accessible avec la clé *publishable*. Deux protections empêchent tout accès aux données par ce biais :
+
+- les tables sont créées dans le schéma dédié **`watcher`** (non exposé par défaut — ne l'ajoutez pas dans *Settings › API › Exposed schemas*) ;
+- la **RLS est activée sur toutes les tables, sans aucune policy** (migration `20261019000000_enable_rls`) : les rôles `anon` / `authenticated` ne voient aucune ligne, tandis que l'application, propriétaire des tables, n'est pas affectée.
+
+**Sauvegardes** : gérées par Supabase (selon votre offre). **Fichiers** : Supabase Storage est compatible S3 — `STORAGE_DRIVER=s3`, `S3_ENDPOINT=https://VOTRE-REF.supabase.co/storage/v1/s3`, `S3_REGION` = région du projet, clés d'accès créées dans Storage › Settings › S3 Access Keys, bucket **privé**. Sinon, gardez `STORAGE_DRIVER=local` avec un volume Coolify.
 
 ## Méthode B — Docker Compose
 
