@@ -2,6 +2,14 @@
 # Démarrage du conteneur : migrations → administrateur initial → (démo) → serveur.
 set -e
 
+# Contrôle de DATABASE_URL (erreur fréquente : "DATABASE_URL=" ou des guillemets collés dans la valeur).
+# Seul le début de la valeur (avant le premier ":") est affiché : jamais le mot de passe.
+case "$DATABASE_URL" in
+  postgresql://*|postgres://*) ;;
+  "") echo "[entrypoint] ERREUR : DATABASE_URL est vide. Renseignez-la dans les variables d environnement."; exit 1 ;;
+  *) echo "[entrypoint] ERREUR : DATABASE_URL doit commencer par postgresql:// (elle commence par : \"${DATABASE_URL%%:*}\"). Collez uniquement l URL dans le champ Value, sans le nom de la variable ni guillemets."; exit 1 ;;
+esac
+
 echo "[entrypoint] Application des migrations Prisma…"
 ./node_modules/.bin/prisma migrate deploy
 
