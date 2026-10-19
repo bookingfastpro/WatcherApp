@@ -19,7 +19,7 @@ export function homeFor(role: string): string {
 export async function SiteHeader() {
   const user = await getCurrentUser();
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-ink/95 text-ivory backdrop-blur supports-[backdrop-filter]:bg-ink/85">
+    <header className="sticky top-0 z-40 border-b border-white/10 bg-ink text-ivory">
       <div className="mx-auto flex h-18 max-w-7xl items-center justify-between gap-6 px-5 md:px-8">
         <Logo />
         <nav aria-label="Navigation principale" className="hidden items-center gap-8 lg:flex">
