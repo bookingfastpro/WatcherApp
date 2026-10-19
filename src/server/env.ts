@@ -15,6 +15,8 @@ const schema = z
     APP_URL: z.preprocess(blankToUndefined, z.url().default("http://localhost:3000")),
     APP_SECRET: z.string().min(32, "APP_SECRET doit contenir au moins 32 caractères."),
     TRUST_PROXY: bool(true),
+    // Désactive TEMPORAIREMENT la limite de tentatives de connexion et le verrouillage du compte (15 min).
+    DISABLE_LOGIN_LOCKOUT: bool(false),
     DATABASE_URL: z.string().min(1),
 
     STORAGE_DRIVER: z.preprocess(blankToUndefined, z.enum(["local", "s3"]).default("local")),

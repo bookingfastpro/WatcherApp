@@ -39,3 +39,6 @@ if (problems.length) {
   process.exit(1);
 }
 console.log("[entrypoint] Variables d'environnement : OK");
+if (/^(true|1)$/i.test(e.DISABLE_LOGIN_LOCKOUT ?? "")) {
+  console.warn("[entrypoint] ⚠ DISABLE_LOGIN_LOCKOUT=true : limite de tentatives et verrouillage de connexion DÉSACTIVÉS (temporaire). Retirez cette variable dès que possible.");
+}

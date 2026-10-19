@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { db } from "../db";
 import { audit } from "../audit";
 import { getRequestMeta } from "../request";
+import { env } from "../env";
 import { rateLimit, RATE_LIMIT_MESSAGE } from "../rate-limit";
 import { dummyVerify, hashPassword, verifyPassword } from "../auth/password";
 import { createSession, destroyCurrentSession, getSession, revokeAllSessions } from "../auth/session";
@@ -161,11 +162,15 @@ export async function login(_: ActionState, formData: FormData): Promise<ActionS
   const { email, password } = parsed.data;
   const meta = await getRequestMeta();
 
-  const [ipLimit, emailLimit] = await Promise.all([
-    rateLimit(`login:ip:${meta.ipHash}`, 30, 900),
-    rateLimit(`login:email:${email}`, 10, 900),
-  ]);
-  if (!ipLimit.ok || !emailLimit.ok) return fail(RATE_LIMIT_MESSAGE);
+  // DISABLE_LOGIN_LOCKOUT=true : pas de limite de tentatives ni de verrouillage (usage temporaire).
+  const lockoutOff = env().DISABLE_LOGIN_LOCKOUT;
+  if (!lockoutOff) {
+    const [ipLimit, emailLimit] = await Promise.all([
+      rateLimit(`login:ip:${meta.ipHash}`, 30, 900),
+      rateLimit(`login:email:${email}`, 10, 900),
+    ]);
+    if (!ipLimit.ok || !emailLimit.ok) return fail(RATE_LIMIT_MESSAGE);
+  }
 
   const GENERIC = "Email ou mot de passe incorrect.";
   const user = await db.user.findUnique({ where: { email } });
@@ -173,7 +178,7 @@ export async function login(_: ActionState, formData: FormData): Promise<ActionS
     await dummyVerify(password);
     return fail(GENERIC);
   }
-  if (user.lockedUntil && user.lockedUntil > new Date()) {
+  if (!lockoutOff && user.lockedUntil && user.lockedUntil > new Date()) {
     await dummyVerify(password);
     return fail(`${GENERIC} Après plusieurs échecs, le compte est temporairement verrouillé ${LOCK_MINUTES} minutes.`);
   }
@@ -181,7 +186,7 @@ export async function login(_: ActionState, formData: FormData): Promise<ActionS
   const valid = await verifyPassword(user.passwordHash, password);
   if (!valid) {
     const failed = user.failedLoginCount + 1;
-    const lock = failed >= MAX_FAILED;
+    const lock = !lockoutOff && failed >= MAX_FAILED;
     await db.user.update({
       where: { id: user.id },
       data: {
