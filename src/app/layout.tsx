@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 import { Cormorant_Garamond, Hanken_Grotesk, IBM_Plex_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
+import { ZoomLock } from "@/components/layout/zoom-lock";
 import "./globals.css";
 
 const display = Cormorant_Garamond({
@@ -30,6 +31,9 @@ export const viewport: Viewport = {
   themeColor: "#0d0d0e",
   width: "device-width",
   initialScale: 1,
+  // Zoom bloqué sur mobile et tablette (complété par touch-action en CSS et ZoomLock pour Safari iOS).
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
@@ -40,6 +44,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className="min-h-dvh">
         {children}
         <Toaster />
+        <ZoomLock />
       </body>
     </html>
   );

@@ -20,11 +20,11 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           </div>
         </div>
       </aside>
-      <main className="flex flex-col bg-ivory">
-        <div className="flex h-18 items-center px-6 lg:hidden">
+      <main className="flex min-h-dvh flex-col bg-white lg:bg-ivory">
+        <div className="flex justify-center pt-12 pb-2 lg:hidden">
           <Logo onLight />
         </div>
-        <div className="flex flex-1 items-center justify-center px-5 py-12 md:px-10">
+        <div className="flex flex-1 items-start justify-center px-6 pt-8 pb-12 text-center lg:items-center lg:py-12 lg:px-10 lg:text-left">
           <div className="w-full max-w-[520px] fade-in">{children}</div>
         </div>
       </main>

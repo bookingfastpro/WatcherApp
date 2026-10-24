@@ -38,6 +38,9 @@
 
 @layer base {
   html {
+    /* Défilement autorisé, pincement et double-tapotement (zoom) interdits sur écrans tactiles. */
+    touch-action: pan-x pan-y;
+    -webkit-text-size-adjust: 100%;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
