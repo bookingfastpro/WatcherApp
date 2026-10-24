@@ -70,10 +70,11 @@ export function SidebarNav({
   return (
     <div className="relative z-40 shrink-0 bg-ink text-ivory lg:hidden">
       <div className="flex h-16 items-center justify-between px-5">
-        <Link href="/" className="flex items-center gap-2.5">
+        {/* Mobile et tablette : logo non cliquable (pas de retour vers la page d'accueil). */}
+        <div className="flex items-center gap-2.5">
           <LogoImage className="h-4" />
           <span className="eyebrow !text-ivory/60">{section}</span>
-        </Link>
+        </div>
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}

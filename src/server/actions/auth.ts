@@ -229,7 +229,7 @@ export async function logout(): Promise<void> {
     await audit({ category: "SECURITY", action: "auth.logout", actor: { id: session.user.id, role: session.user.role } });
   }
   await destroyCurrentSession();
-  redirect("/");
+  redirect("/connexion");
 }
 
 // ───────────────────────────────────────────────────────── Vérification email

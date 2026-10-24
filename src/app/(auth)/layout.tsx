@@ -1,4 +1,4 @@
-import { Logo } from "@/components/ui/logo";
+import { Logo, LogoImage } from "@/components/ui/logo";
 import { ShieldCheck } from "lucide-react";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
@@ -22,7 +22,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       </aside>
       <main className="flex min-h-dvh flex-col bg-white lg:bg-ivory">
         <div className="flex justify-center pt-12 pb-2 lg:hidden">
-          <Logo onLight />
+          {/* Mobile et tablette : logo non cliquable (pas de retour vers la page d'accueil). */}
+          <LogoImage onLight />
         </div>
         <div className="flex flex-1 items-start justify-center px-6 pt-8 pb-12 text-center lg:items-center lg:py-12 lg:px-10 lg:text-left">
           <div className="w-full max-w-[520px] fade-in">{children}</div>
