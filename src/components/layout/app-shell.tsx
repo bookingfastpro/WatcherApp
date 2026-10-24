@@ -27,8 +27,9 @@ export function AppShell({ section, items, user, children, banner }: AppShellPro
   );
 
   return (
-    <div className="min-h-dvh lg:grid lg:grid-cols-[264px_1fr]">
-      <aside className="hidden bg-ink text-ivory lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col">
+    // La navigation reste hors de la zone de défilement : seul <main> défile (rebond iOS/Android contenu).
+    <div className="flex h-dvh flex-col overflow-hidden lg:grid lg:grid-cols-[264px_1fr]">
+      <aside className="hidden bg-ink text-ivory lg:flex lg:h-dvh lg:flex-col">
         <div className="px-6 pb-6 pt-7">
           <Logo />
           <p className="eyebrow mt-4 !text-ivory/40">{section}</p>
@@ -37,7 +38,7 @@ export function AppShell({ section, items, user, children, banner }: AppShellPro
         {footer}
       </aside>
       <SidebarNav items={items} mobile section={section} footer={footer} />
-      <main className="min-w-0">
+      <main className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain lg:h-dvh">
         {banner}
         <div className="mx-auto max-w-6xl px-5 py-10 md:px-10 md:py-14">{children}</div>
       </main>

@@ -66,7 +66,7 @@ export default async function PartnersPage({ searchParams }: { searchParams: Pro
         </form>
       </section>
 
-      <section className="bg-ivory">
+      <section className="bg-white lg:bg-ivory">
         <div className="mx-auto max-w-7xl px-5 py-16 md:px-8">
           {partners.length ? (
             <>

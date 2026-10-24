@@ -41,10 +41,10 @@ export default async function ProfessionalsPage() {
         </div>
       </section>
 
-      <section className="border-b border-line bg-ivory">
+      <section className="border-b border-line bg-white lg:bg-ivory">
         <ol className="mx-auto grid max-w-7xl gap-px bg-line md:grid-cols-4">
           {PROCESS.map((p, i) => (
-            <li key={p.t} className="bg-ivory px-6 py-12 md:px-8">
+            <li key={p.t} className="bg-white lg:bg-ivory px-6 py-12 md:px-8">
               <span className="serial text-sm text-brass">0{i + 1}</span>
               <h2 className="mt-5 font-display text-2xl text-ink">{p.t}</h2>
               <p className="mt-3 text-sm leading-relaxed text-slate">{p.d}</p>

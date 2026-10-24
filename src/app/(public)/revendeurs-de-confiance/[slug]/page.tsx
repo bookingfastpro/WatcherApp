@@ -32,7 +32,7 @@ export default async function PartnerPage({ params }: { params: Promise<{ slug: 
   ].filter((l): l is { href: string; label: string } => Boolean(l.href));
 
   return (
-    <div className="bg-ivory">
+    <div className="bg-white lg:bg-ivory">
       <div className="mx-auto max-w-6xl px-5 py-12 md:px-8 md:py-16">
         <Link href="/revendeurs-de-confiance" className="inline-flex items-center gap-2 text-sm text-slate hover:text-ink">
           <ArrowLeft className="size-4" aria-hidden /> Revendeurs de confiance

@@ -1,7 +1,7 @@
 /** Mise en page des documents légaux. */
 export function LegalPage({ title, updated, children }: { title: string; updated: string; children: React.ReactNode }) {
   return (
-    <div className="bg-ivory">
+    <div className="bg-white lg:bg-ivory">
       <article className="mx-auto max-w-3xl px-5 py-16 md:py-24">
         <p className="eyebrow">Informations légales</p>
         <h1 className="mt-4 font-display text-5xl leading-none text-ink">{title}</h1>

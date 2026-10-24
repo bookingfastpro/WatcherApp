@@ -185,7 +185,10 @@ export function ReportForm({
       setSummary(s);
     }
     setStep(to);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    // Le contenu défile dans <main> (coque des espaces connectés), pas dans la fenêtre.
+    const scroller = formRef.current?.closest("main");
+    if (scroller) scroller.scrollTo({ top: 0, behavior: "smooth" });
+    else window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   const show = (i: number) => !wizard || step === i;

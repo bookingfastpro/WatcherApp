@@ -68,7 +68,7 @@ export function SidebarNav({
   if (!mobile) return <Links items={items} />;
 
   return (
-    <div className="sticky top-0 z-40 bg-ink text-ivory lg:hidden">
+    <div className="relative z-40 shrink-0 bg-ink text-ivory lg:hidden">
       <div className="flex h-16 items-center justify-between px-5">
         <Link href="/" className="flex items-center gap-2.5">
           <LogoImage className="h-4" />

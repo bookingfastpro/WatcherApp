@@ -120,7 +120,7 @@ export default async function HomePage() {
       </section>
 
       {/* ─── Fonctionnement */}
-      <section id="fonctionnement" className="scroll-mt-20 border-b border-line bg-ivory">
+      <section id="fonctionnement" className="scroll-mt-20 border-b border-line bg-white lg:bg-ivory">
         <div className="mx-auto max-w-7xl px-5 py-24 md:px-8 md:py-32">
           <div className="max-w-2xl">
             <p className="eyebrow">Fonctionnement</p>
@@ -128,7 +128,7 @@ export default async function HomePage() {
           </div>
           <ol className="mt-16 grid gap-px bg-line md:grid-cols-3">
             {STEPS.map((s) => (
-              <li key={s.n} className="bg-ivory p-8 md:p-10">
+              <li key={s.n} className="bg-white lg:bg-ivory p-8 md:p-10">
                 <span className="serial text-sm text-brass">{s.n}</span>
                 <h3 className="mt-6 font-display text-3xl text-ink">{s.title}</h3>
                 <p className="mt-4 text-[15px] leading-relaxed text-slate">{s.text}</p>
@@ -157,7 +157,7 @@ export default async function HomePage() {
       </section>
 
       {/* ─── Statistiques (réelles uniquement) */}
-      <section className="border-y border-line bg-ivory">
+      <section className="border-y border-line bg-white lg:bg-ivory">
         <div className="mx-auto max-w-7xl px-5 py-20 md:px-8">
           {stats ? (
             <dl className="grid gap-10 text-center sm:grid-cols-3">
@@ -233,7 +233,7 @@ export default async function HomePage() {
       </section>
 
       {/* ─── FAQ */}
-      <section id="faq" className="scroll-mt-20 bg-ivory">
+      <section id="faq" className="scroll-mt-20 bg-white lg:bg-ivory">
         <div className="mx-auto grid max-w-7xl gap-12 px-5 py-24 md:px-8 md:py-32 lg:grid-cols-[1fr_1.6fr]">
           <div>
             <p className="eyebrow">Questions fréquentes</p>

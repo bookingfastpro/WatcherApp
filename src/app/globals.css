@@ -46,7 +46,8 @@
     text-rendering: optimizeLegibility;
   }
   body {
-    background: var(--color-ivory);
+    /* Blanc sur mobile et tablette, ivoire sur ordinateur (même seuil que le préfixe lg de Tailwind). */
+    background: #ffffff;
     color: var(--color-anthracite);
     font-family: var(--font-sans);
   }
@@ -82,6 +83,12 @@
   .serial {
     font-family: var(--font-mono);
     letter-spacing: 0.04em;
+  }
+}
+
+@media (min-width: 1024px) {
+  body {
+    background: var(--color-ivory);
   }
 }
 

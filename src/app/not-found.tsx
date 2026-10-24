@@ -3,7 +3,7 @@ import { LogoImage } from "@/components/ui/logo";
 
 export default function NotFound() {
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-center bg-ivory px-6 text-center">
+    <main className="flex min-h-dvh flex-col items-center justify-center bg-white lg:bg-ivory px-6 text-center">
       <LogoImage onLight className="h-8" />
       <p className="eyebrow mt-10">Erreur 404</p>
       <h1 className="mt-4 font-display text-5xl text-ink">Page introuvable</h1>
