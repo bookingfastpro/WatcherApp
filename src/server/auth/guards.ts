@@ -15,7 +15,7 @@ export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
 /** Page ou action nécessitant un utilisateur connecté (et email vérifié). */
 export async function requireUser(): Promise<SessionUser> {
   const user = await getCurrentUser();
-  if (!user) redirect("/connexion");
+  if (!user) redirect("/connexion?expire=1");
   if (!user.emailVerifiedAt) redirect("/connexion?unverified=1");
   return user;
 }
@@ -29,7 +29,9 @@ export async function requirePermission(permission: Permission): Promise<Session
 /** Les routes admin renvoient 404 aux non-admins (on ne révèle pas leur existence). */
 export async function requireAdmin(): Promise<SessionUser> {
   const user = await getCurrentUser();
-  if (!user || user.role !== "ADMIN") notFound();
+  // Session absente ou expirée : retour à la connexion. Connecté mais non admin : 404 (on ne révèle rien).
+  if (!user) redirect("/connexion?expire=1");
+  if (user.role !== "ADMIN") notFound();
   return user;
 }
 

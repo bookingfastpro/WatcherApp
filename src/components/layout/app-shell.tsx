@@ -2,6 +2,7 @@ import { LogOut } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
 import { logout } from "@/server/actions/auth";
 import { SidebarNav, type NavItem } from "./sidebar-nav";
+import { SessionWatch } from "./session-watch";
 
 type AppShellProps = {
   section: string;
@@ -37,6 +38,7 @@ export function AppShell({ section, items, user, children, banner }: AppShellPro
         <SidebarNav items={items} />
         {footer}
       </aside>
+      <SessionWatch />
       <SidebarNav items={items} mobile section={section} footer={footer} />
       <main className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain lg:h-dvh">
         {banner}

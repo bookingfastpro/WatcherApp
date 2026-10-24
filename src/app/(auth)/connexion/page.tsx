@@ -16,6 +16,9 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       <h1 className="mt-3 font-display text-5xl leading-none text-ink">Connexion</h1>
       <p className="mt-4 text-[15px] text-slate">Accédez à vos déclarations ou à votre espace professionnel.</p>
       <div className="mt-8 space-y-4">
+        {param(sp.expire) ? (
+          <Notice tone="warn">Votre session a expiré. Reconnectez-vous pour continuer.</Notice>
+        ) : null}
         {param(sp.reinitialise) ? (
           <Notice tone="ok">Votre mot de passe a été modifié. Vous pouvez vous connecter.</Notice>
         ) : null}
